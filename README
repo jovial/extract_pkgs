@@ -1,0 +1,3 @@
+# Usage
+
+cat ~/work/kayobe-overcloud-deploy | python mitmextract.py parse_pip | sort | uniq
