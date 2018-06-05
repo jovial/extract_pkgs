@@ -46,7 +46,7 @@ def parse_galaxy(agent, url, path, process):
         return False
     query = urllib.parse.parse_qs(url.query)
     if "name" not in query:
-        return False
+        return True
     if isinstance(query["name"], collections.Iterable):
         for x in query["name"]:
             process(x)
@@ -65,11 +65,13 @@ def parse_git(agent, url, path, process):
     # swallow rest?
     return True
 
-def parse_raw(agent, url, path, process):
-    # FIXME: missing stuff... use blacklist?
-    if agent.startswith("ansible-httpget"):
-        process(url.geturl())
+def parse_leftover(agent, url, path, process):
+    # THis is a catch-all for everything that hasn't been parsed
+    # blacklist a few items:
+    if "repodata" in path:
+        # yum repo data
         return True
+    process(url.geturl())
 
 def swallow(parser):
     return lambda agent, url, path: parser(agent, url, path, lambda _: None)
@@ -81,7 +83,7 @@ def print_result(parser):
 if __name__ == '__main__':
     # ordered so we reduce stuff reaching parse_raw
     parsers = ["parse_pip", "parse_yum", "parse_docker", "parse_galaxy",
-               "parse_git", "parse_raw"]
+               "parse_git", "parse_leftover"]
 
     parser = argparse.ArgumentParser()
     parser.add_argument('parser', choices=parsers, help='parser to run')
